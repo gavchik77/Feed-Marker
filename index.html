@@ -1,0 +1,582 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Marker Digestibility Tutor</title>
+<style>
+:root{
+  --bg:#f5f7f3;--card:#fff;--ink:#202c23;--muted:#68746b;--line:#dce5dd;
+  --green:#315b3a;--greenbg:#e8f3ea;--red:#9a352f;--redbg:#fae9e7;
+  --amber:#7b5d16;--amberbg:#fff4d6;--blue:#315f77;--bluebg:#eaf2f7;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.5}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+.hero{background:linear-gradient(135deg,#274b31,#52775a);color:#fff;padding:48px 0 60px}
+.hero h1{font-size:clamp(2.2rem,5vw,4rem);line-height:1;margin:.2rem 0 .55rem}
+.hero p{max-width:860px;margin:0}
+.kicker,.stepno{text-transform:uppercase;letter-spacing:.12em;font-size:.76rem;font-weight:850}
+main{margin-top:-27px;padding-bottom:60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;margin-bottom:20px;box-shadow:0 10px 28px rgba(31,54,36,.07)}
+.card h2{margin:.15rem 0 .7rem}.card h3{margin:1.2rem 0 .5rem}
+.small{font-size:.88rem;color:var(--muted)}
+.score-card{border-top:5px solid var(--blue)}
+.score-heading{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}
+.score-total{min-width:150px;text-align:center;padding:14px 18px;border:1px solid var(--line);border-radius:14px;background:#f8fbfd}
+.score-total span{display:block;color:var(--muted);font-size:.75rem;text-transform:uppercase}
+.score-total strong{display:block;font-size:2rem}
+.score-summary,.concept-grid,.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:15px 0}
+.score-summary div,.concept-grid div,.summary-grid div{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fbfcfb}
+.score-summary span,.concept-grid span,.summary-grid span{display:block;color:var(--muted);font-size:.74rem;text-transform:uppercase;letter-spacing:.04em}
+.score-summary strong,.concept-grid strong,.summary-grid strong{display:block;margin-top:4px;font-size:1.08rem}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;margin-top:10px}
+th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{font-size:.76rem;color:var(--muted);text-transform:uppercase;letter-spacing:.035em}
+.formula{background:#f3f7f4;border-left:4px solid var(--green);padding:12px 14px;border-radius:8px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;margin:14px 0}
+.note{background:var(--bluebg);color:#294f60;border-radius:11px;padding:12px 14px;margin:12px 0}
+.warn{background:var(--amberbg);color:var(--amber);border-radius:11px;padding:12px 14px;margin:12px 0}
+.question-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:15px 0}
+.question-grid.three{grid-template-columns:repeat(3,1fr)}
+.question-grid.four{grid-template-columns:repeat(4,1fr)}
+label{font-weight:720;font-size:.92rem}
+input,select{width:100%;margin-top:6px;border:1px solid #c9d4cb;border-radius:10px;padding:10px 11px;font:inherit;background:#fff}
+input:focus,select:focus{outline:3px solid rgba(49,91,58,.13);border-color:var(--green)}
+input.good{border-color:var(--green);background:#fbfffc}
+input.bad{border-color:var(--red);background:#fffafa}
+.field-feedback{display:block;min-height:1.2em;font-size:.8rem;margin-top:4px;color:var(--muted)}
+.field-feedback.good{color:var(--green);font-weight:750}.field-feedback.bad{color:var(--red);font-weight:750}
+.feedback{border-radius:11px;padding:11px 13px;margin-top:10px}
+.feedback.neutral{background:#f0f2f0;color:var(--muted)}
+.feedback.pass{background:var(--greenbg);color:#1d6a3d;font-weight:800}
+.feedback.fail{background:var(--redbg);color:var(--red);font-weight:800}
+.feedback.warn{background:var(--amberbg);color:var(--amber);font-weight:800}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+button{border:0;border-radius:11px;padding:11px 14px;font:inherit;font-weight:800;cursor:pointer;background:var(--green);color:#fff}
+button.secondary{background:#e9eeea;color:var(--ink)}
+.status-pill{display:inline-block;padding:3px 8px;border-radius:999px;font-size:.75rem;font-weight:800}
+.status-pill.complete{background:var(--greenbg);color:#1d6a3d}
+.status-pill.incomplete{background:#f0f2f0;color:var(--muted)}
+.practice-row{background:#eef7ef;border-top:2px solid var(--green)}
+.exercise-data{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}
+.exercise-data div{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fbfcfb}
+.exercise-data span{display:block;color:var(--muted);font-size:.74rem;text-transform:uppercase}
+.exercise-data strong{display:block;margin-top:3px}
+.tab-buttons{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.tab-buttons button.active{background:var(--blue)}
+@media(max-width:850px){.score-summary,.concept-grid,.summary-grid,.exercise-data,.question-grid.four{grid-template-columns:1fr 1fr}.score-heading{flex-direction:column}}
+@media(max-width:650px){.score-summary,.concept-grid,.summary-grid,.exercise-data,.question-grid,.question-grid.three,.question-grid.four{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <p class="kicker">Marker / indicator method · student calculation app</p>
+    <h1>Digestibility Using Markers</h1>
+    <p>Use an indigestible marker to estimate faecal dry-matter output and then calculate dry-matter or compound digestibility.</p>
+  </div>
+</header>
+
+<main class="wrap">
+
+<section class="card score-card">
+  <div class="score-heading">
+    <div>
+      <p class="stepno">Student marks</p>
+      <h2>Progress & attempt record</h2>
+      <p class="small">Values are checked live. Press <strong>Mark this attempt</strong> when you want the result recorded.</p>
+    </div>
+    <div class="score-total"><span>Overall score</span><strong id="overallScore">0%</strong></div>
+  </div>
+
+  <div class="score-summary">
+    <div><span>Attempts</span><strong id="scoreAttempts">0</strong></div>
+    <div><span>Successful</span><strong id="scoreSuccess">0</strong></div>
+    <div><span>Unsuccessful</span><strong id="scoreFail">0</strong></div>
+    <div><span>Completed</span><strong id="scoreCompleted">0 / 4</strong></div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Exercise</th><th>Attempts</th><th>Successful</th><th>Unsuccessful</th><th>Best</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>1 · DM digestibility from marker</td><td id="s_lesson1_attempts">0</td><td id="s_lesson1_success">0</td><td id="s_lesson1_fail">0</td><td id="s_lesson1_best">—</td><td id="s_lesson1_status"><span class="status-pill incomplete">Not completed</span></td></tr>
+        <tr><td>2 · Compound digestibility coefficient</td><td id="s_lesson2_attempts">0</td><td id="s_lesson2_success">0</td><td id="s_lesson2_fail">0</td><td id="s_lesson2_best">—</td><td id="s_lesson2_status"><span class="status-pill incomplete">Not completed</span></td></tr>
+        <tr class="practice-row"><td><strong>3 · Practice: DM digestibility</strong></td><td id="s_practice1_attempts">0</td><td id="s_practice1_success">0</td><td id="s_practice1_fail">0</td><td id="s_practice1_best">—</td><td id="s_practice1_status"><span class="status-pill incomplete">Not completed</span></td></tr>
+        <tr class="practice-row"><td><strong>4 · Practice: compound coefficient</strong></td><td id="s_practice2_attempts">0</td><td id="s_practice2_success">0</td><td id="s_practice2_fail">0</td><td id="s_practice2_best">—</td><td id="s_practice2_status"><span class="status-pill incomplete">Not completed</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="actions"><button id="resetScores" class="secondary">Reset marks</button><button id="downloadScores" class="secondary">Download marks CSV</button></div>
+</section>
+
+<section class="card">
+  <p class="stepno">Why use a marker?</p>
+  <h2>Marker principle</h2>
+  <p>
+    When feed intake or faecal output cannot be measured directly, an indigestible marker can be used.
+    The marker becomes concentrated in faeces because digestible material disappears during digestion.
+  </p>
+  <div class="concept-grid">
+    <div><span>Internal marker</span><strong>Natural feed constituent</strong><small>e.g. lignin, acid-insoluble ash, n-alkanes</small></div>
+    <div><span>External marker</span><strong>Added to the feed</strong><small>e.g. chromic oxide (Cr₂O₃)</small></div>
+    <div><span>Marker is assumed</span><strong>Indigestible</strong></div>
+    <div><span>Main use</span><strong>Estimate faecal output</strong></div>
+  </div>
+
+  <div class="formula">Faecal DM (kg/day) = marker dose (g/day) ÷ marker concentration in faeces (g/kg DM)</div>
+
+  <details class="note">
+    <summary><strong>If only marker concentrations in feed and faeces are known</strong></summary>
+    <div class="formula">DM digestibility = (marker in faeces − marker in feed) ÷ marker in faeces</div>
+    <p>Example: marker rises from 10 g/kg DM in feed to 20 g/kg DM in faeces → (20 − 10) ÷ 20 = 0.50 = 50% DMD.</p>
+  </details>
+</section>
+
+<section class="card" id="lesson1">
+  <p class="stepno">Exercise 1 · From marker to dry-matter digestibility</p>
+  <h2>Worked case from the slides</h2>
+  <div class="exercise-data">
+    <div><span>Hay consumed</span><strong>6.5 kg DM/day</strong></div>
+    <div><span>Cr₂O₃ dose</span><strong>10 g/day</strong></div>
+    <div><span>Cr₂O₃ in faeces</span><strong>4 g/kg faecal DM</strong></div>
+    <div><span>Find</span><strong>DM digestibility</strong></div>
+  </div>
+
+  <h3>Step A — estimate faecal DM output</h3>
+  <div class="formula">Faecal DM = 10 g/day ÷ 4 g/kg DM</div>
+  <div class="question-grid">
+    <label>Faecal DM output (kg/day)
+      <input id="fecalDM1" type="number" step="0.1">
+      <span id="fecalDM1Fb" class="field-feedback"></span>
+    </label>
+  </div>
+
+  <h3>Step B — calculate digestibility</h3>
+  <div class="formula">DMD (%) = [(DM intake − faecal DM output) ÷ DM intake] × 100</div>
+  <div class="question-grid">
+    <label>DM digested (kg/day)
+      <input id="digestedDM1" type="number" step="0.1">
+      <span id="digestedDM1Fb" class="field-feedback"></span>
+    </label>
+    <label>DM digestibility (%)
+      <input id="dmd1" type="number" step="0.1">
+      <span id="dmd1Fb" class="field-feedback"></span>
+    </label>
+  </div>
+
+  <div id="lesson1Feedback" class="feedback neutral">Calculate faecal DM first. Then use it in the digestibility formula.</div>
+  <div class="actions"><button id="markLesson1">Mark this attempt</button></div>
+</section>
+
+<section class="card" id="lesson2">
+  <p class="stepno">Exercise 2 · Compound digestibility coefficient</p>
+  <h2>Organic matter digestibility from the marker</h2>
+
+  <div class="exercise-data">
+    <div><span>DM intake</span><strong>6.5 kg/day</strong></div>
+    <div><span>Marker dose</span><strong>10 g/day</strong></div>
+    <div><span>Marker in faeces</span><strong>4 g/kg DM</strong></div>
+    <div><span>OM feed / faeces</span><strong>919 / 780 g/kg</strong></div>
+  </div>
+
+  <div class="formula">
+    Compound digestibility coefficient =
+    1 − [(marker dose × compound in faeces) ÷
+    (marker in faeces × compound in feed × DM intake)]
+  </div>
+
+  <div class="question-grid three">
+    <label>Fraction apparently not digested
+      <input id="undigestedOM" type="number" step="0.001">
+      <span id="undigestedOMFb" class="field-feedback"></span>
+    </label>
+    <label>OM digestibility coefficient
+      <input id="omCoeff" type="number" step="0.001">
+      <span id="omCoeffFb" class="field-feedback"></span>
+    </label>
+    <label>OM digestibility (%)
+      <input id="omPct" type="number" step="0.1">
+      <span id="omPctFb" class="field-feedback"></span>
+    </label>
+  </div>
+
+  <div class="note">
+    A coefficient is written as a decimal (for example 0.67). To express it as a percentage, multiply by 100.
+  </div>
+
+  <div id="lesson2Feedback" class="feedback neutral">Substitute all values into the compound digestibility coefficient formula.</div>
+  <div class="actions"><button id="markLesson2">Mark this attempt</button></div>
+</section>
+
+<section class="card">
+  <p class="stepno">Practice generator A</p>
+  <h2>3 · New DM digestibility case</h2>
+  <p>Similar to Exercise 1: calculate faecal DM output first, then DMD.</p>
+  <div class="actions"><button id="newPractice1">Generate new case</button></div>
+  <div id="practice1Case" class="formula"></div>
+
+  <div class="question-grid three">
+    <label>Faecal DM (kg/day)
+      <input id="p1Fecal" type="number" step="0.01">
+      <span id="p1FecalFb" class="field-feedback"></span>
+    </label>
+    <label>DM digested (kg/day)
+      <input id="p1Digested" type="number" step="0.01">
+      <span id="p1DigestedFb" class="field-feedback"></span>
+    </label>
+    <label>DMD (%)
+      <input id="p1DMD" type="number" step="0.1">
+      <span id="p1DMDFb" class="field-feedback"></span>
+    </label>
+  </div>
+
+  <div id="practice1Feedback" class="feedback neutral">Generate a case and solve it in sequence.</div>
+  <div class="actions"><button id="markPractice1">Mark this attempt</button></div>
+</section>
+
+<section class="card">
+  <p class="stepno">Practice generator B</p>
+  <h2>4 · New compound digestibility case</h2>
+  <p>
+    Similar to Exercise 2. The compound may be organic matter, crude protein, fibre or fat.
+    Values are illustrative practice values.
+  </p>
+  <div class="actions"><button id="newPractice2">Generate new case</button></div>
+  <div id="practice2Case" class="formula"></div>
+
+  <div class="question-grid three">
+    <label>Undigested fraction
+      <input id="p2Undigested" type="number" step="0.001">
+      <span id="p2UndigestedFb" class="field-feedback"></span>
+    </label>
+    <label>Digestibility coefficient
+      <input id="p2Coeff" type="number" step="0.001">
+      <span id="p2CoeffFb" class="field-feedback"></span>
+    </label>
+    <label>Digestibility (%)
+      <input id="p2Pct" type="number" step="0.1">
+      <span id="p2PctFb" class="field-feedback"></span>
+    </label>
+  </div>
+
+  <div id="practice2Feedback" class="feedback neutral">Generate a case and substitute the values carefully.</div>
+  <div class="actions"><button id="markPractice2">Mark this attempt</button></div>
+</section>
+
+<section class="card">
+  <p class="stepno">Formula summary</p>
+  <h2>Three calculations to remember</h2>
+  <div class="summary-grid">
+    <div><span>1</span><strong>Faecal DM = dose ÷ faecal marker concentration</strong></div>
+    <div><span>2</span><strong>DMD = (intake − faecal DM) ÷ intake</strong></div>
+    <div><span>3</span><strong>Compound coefficient = 1 − marker-adjusted faecal fraction</strong></div>
+    <div><span>Check</span><strong>Coefficient × 100 = digestibility %</strong></div>
+  </div>
+</section>
+
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+const val=id=>parseFloat($(id).value);
+const close=(a,b,t)=>Number.isFinite(a)&&Math.abs(a-b)<=t;
+
+function setFeedback(id,type,text){
+  const e=$(id);e.className=`feedback ${type}`;e.textContent=text;
+}
+function mark(id,fbid,ok,text="Correct"){
+  const i=$(id),f=$(fbid);
+  i.classList.remove("good","bad"); f.className="field-feedback";
+  if(!i.value){f.textContent="";return}
+  i.classList.add(ok?"good":"bad"); f.classList.add(ok?"good":"bad");
+  f.textContent=ok?`✓ ${text}`:"Check this value";
+}
+
+// Fixed exercise 1
+const ex1={intake:6.5,dose:10,markerFeces:4};
+ex1.fecal=ex1.dose/ex1.markerFeces;
+ex1.digested=ex1.intake-ex1.fecal;
+ex1.dmd=ex1.digested/ex1.intake*100;
+
+function checkLesson1(){
+  mark("fecalDM1","fecalDM1Fb",close(val("fecalDM1"),ex1.fecal,.03));
+  mark("digestedDM1","digestedDM1Fb",close(val("digestedDM1"),ex1.digested,.03));
+  mark("dmd1","dmd1Fb",close(val("dmd1"),ex1.dmd,.15));
+
+  const ids=["fecalDM1","digestedDM1","dmd1"];
+  if(ids.every(id=>Number.isFinite(val(id)))){
+    const ok=
+      close(val("fecalDM1"),ex1.fecal,.03) &&
+      close(val("digestedDM1"),ex1.digested,.03) &&
+      close(val("dmd1"),ex1.dmd,.15);
+
+    setFeedback(
+      "lesson1Feedback",
+      ok?"pass":"fail",
+      ok
+        ? `Correct. Faecal DM = ${ex1.fecal.toFixed(1)} kg/day; DM digested = ${ex1.digested.toFixed(1)} kg/day; DMD = ${ex1.dmd.toFixed(1)}%.`
+        : "First calculate 10 ÷ 4. Then subtract faecal DM from intake and divide by intake."
+    );
+  }
+}
+["fecalDM1","digestedDM1","dmd1"].forEach(id=>$(id).addEventListener("input",checkLesson1));
+
+// Fixed exercise 2
+const ex2={intake:6.5,dose:10,markerFeces:4,compoundFeed:919,compoundFeces:780};
+ex2.undigested=(ex2.dose*ex2.compoundFeces)/(ex2.markerFeces*ex2.compoundFeed*ex2.intake);
+ex2.coeff=1-ex2.undigested;
+ex2.pct=ex2.coeff*100;
+
+function checkLesson2(){
+  mark("undigestedOM","undigestedOMFb",close(val("undigestedOM"),ex2.undigested,.003));
+  mark("omCoeff","omCoeffFb",close(val("omCoeff"),ex2.coeff,.003));
+  mark("omPct","omPctFb",close(val("omPct"),ex2.pct,.25));
+
+  const ids=["undigestedOM","omCoeff","omPct"];
+  if(ids.every(id=>Number.isFinite(val(id)))){
+    const ok=
+      close(val("undigestedOM"),ex2.undigested,.003) &&
+      close(val("omCoeff"),ex2.coeff,.003) &&
+      close(val("omPct"),ex2.pct,.25);
+
+    setFeedback(
+      "lesson2Feedback",
+      ok?"pass":"fail",
+      ok
+        ? `Correct. Undigested fraction ≈ ${ex2.undigested.toFixed(3)}; OM digestibility coefficient ≈ ${ex2.coeff.toFixed(3)}, or ${ex2.pct.toFixed(1)}%.`
+        : "Calculate the marker-adjusted undigested fraction first, then subtract it from 1."
+    );
+  }
+}
+["undigestedOM","omCoeff","omPct"].forEach(id=>$(id).addEventListener("input",checkLesson2));
+
+// Practice A
+let p1=null;
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+
+function generatePractice1(){
+  const intake=pick([5.0,5.5,6.0,6.5,7.0,7.5,8.0]);
+  const markerFeces=pick([3,4,5,6]);
+  const desiredFecal=pick([1.5,2.0,2.5,3.0]);
+  const dose=markerFeces*desiredFecal;
+  const fecal=dose/markerFeces;
+  const digested=intake-fecal;
+  const dmd=digested/intake*100;
+
+  if(digested<=0){generatePractice1();return}
+
+  p1={intake,markerFeces,dose,fecal,digested,dmd};
+
+  $("practice1Case").innerHTML=
+    `<strong>New case:</strong> DM intake ${intake.toFixed(1)} kg/day; marker dose ${dose.toFixed(1)} g/day; marker concentration in faeces ${markerFeces} g/kg DM.`;
+
+  ["p1Fecal","p1Digested","p1DMD"].forEach(id=>{$(id).value="";$(id).classList.remove("good","bad")});
+  ["p1FecalFb","p1DigestedFb","p1DMDFb"].forEach(id=>{$(id).textContent="";$(id).className="field-feedback"});
+  setFeedback("practice1Feedback","neutral","Calculate faecal DM first, then DM digested and DMD.");
+}
+function checkPractice1(){
+  if(!p1)return;
+  mark("p1Fecal","p1FecalFb",close(val("p1Fecal"),p1.fecal,.04));
+  mark("p1Digested","p1DigestedFb",close(val("p1Digested"),p1.digested,.04));
+  mark("p1DMD","p1DMDFb",close(val("p1DMD"),p1.dmd,.2));
+
+  const ids=["p1Fecal","p1Digested","p1DMD"];
+  if(ids.every(id=>Number.isFinite(val(id)))){
+    const arr=[
+      close(val("p1Fecal"),p1.fecal,.04),
+      close(val("p1Digested"),p1.digested,.04),
+      close(val("p1DMD"),p1.dmd,.2)
+    ];
+    setFeedback("practice1Feedback",arr.every(Boolean)?"pass":"warn",
+      arr.every(Boolean)?"All three calculations are correct.":`${arr.filter(Boolean).length} of 3 parts are correct.`);
+  }
+}
+$("newPractice1").addEventListener("click",generatePractice1);
+["p1Fecal","p1Digested","p1DMD"].forEach(id=>$(id).addEventListener("input",checkPractice1));
+
+// Practice B
+let p2=null;
+const compounds=[
+  {name:"Organic matter",feed:[880,900,920],feces:[700,740,780]},
+  {name:"Crude protein",feed:[140,160,180],feces:[90,110,130]},
+  {name:"Fibre",feed:[220,260,300],feces:[180,210,240]},
+  {name:"Fat",feed:[40,55,70],feces:[20,30,40]}
+];
+
+function generatePractice2(){
+  const c=pick(compounds);
+  const intake=pick([5.5,6.0,6.5,7.0,7.5]);
+  const markerFeces=pick([4,5,6]);
+  const dose=pick([8,10,12]);
+  const compoundFeed=pick(c.feed);
+  const compoundFeces=pick(c.feces);
+
+  const undigested=(dose*compoundFeces)/(markerFeces*compoundFeed*intake);
+  const coeff=1-undigested;
+  const pct=coeff*100;
+
+  if(coeff<=0 || coeff>=1){generatePractice2();return}
+
+  p2={name:c.name,intake,markerFeces,dose,compoundFeed,compoundFeces,undigested,coeff,pct};
+
+  $("practice2Case").innerHTML=
+    `<strong>${c.name}</strong><br>
+     DM intake ${intake.toFixed(1)} kg/day; marker dose ${dose} g/day; marker in faeces ${markerFeces} g/kg DM;
+     ${c.name.toLowerCase()} in feed ${compoundFeed} g/kg; ${c.name.toLowerCase()} in faeces ${compoundFeces} g/kg.`;
+
+  ["p2Undigested","p2Coeff","p2Pct"].forEach(id=>{$(id).value="";$(id).classList.remove("good","bad")});
+  ["p2UndigestedFb","p2CoeffFb","p2PctFb"].forEach(id=>{$(id).textContent="";$(id).className="field-feedback"});
+  setFeedback("practice2Feedback","neutral","Calculate the undigested fraction first, then subtract from 1.");
+}
+function checkPractice2(){
+  if(!p2)return;
+  mark("p2Undigested","p2UndigestedFb",close(val("p2Undigested"),p2.undigested,.004));
+  mark("p2Coeff","p2CoeffFb",close(val("p2Coeff"),p2.coeff,.004));
+  mark("p2Pct","p2PctFb",close(val("p2Pct"),p2.pct,.3));
+
+  const ids=["p2Undigested","p2Coeff","p2Pct"];
+  if(ids.every(id=>Number.isFinite(val(id)))){
+    const arr=[
+      close(val("p2Undigested"),p2.undigested,.004),
+      close(val("p2Coeff"),p2.coeff,.004),
+      close(val("p2Pct"),p2.pct,.3)
+    ];
+    setFeedback("practice2Feedback",arr.every(Boolean)?"pass":"warn",
+      arr.every(Boolean)?"All three calculations are correct.":`${arr.filter(Boolean).length} of 3 parts are correct.`);
+  }
+}
+$("newPractice2").addEventListener("click",generatePractice2);
+["p2Undigested","p2Coeff","p2Pct"].forEach(id=>$(id).addEventListener("input",checkPractice2));
+
+// scoring
+const SCORE_KEY="markerDigestibilityTutorV1";
+const labels={
+  lesson1:"1 · DM digestibility from marker",
+  lesson2:"2 · Compound digestibility coefficient",
+  practice1:"3 · Practice: DM digestibility",
+  practice2:"4 · Practice: compound coefficient"
+};
+
+function emptyScores(){
+  const x={};
+  Object.keys(labels).forEach(k=>x[k]={attempts:0,success:0,fail:0,best:0,completed:false});
+  return x;
+}
+function loadScores(){
+  try{
+    const base=emptyScores(),old=JSON.parse(localStorage.getItem(SCORE_KEY)||"{}");
+    Object.keys(base).forEach(k=>{if(old[k])base[k]={...base[k],...old[k]}});
+    return base;
+  }catch(e){return emptyScores()}
+}
+let scores=loadScores();
+function saveScores(){localStorage.setItem(SCORE_KEY,JSON.stringify(scores))}
+
+function resultFor(k){
+  if(k==="lesson1"){
+    const ids=["fecalDM1","digestedDM1","dmd1"];
+    if(ids.some(id=>!Number.isFinite(val(id))))return null;
+    return[
+      close(val("fecalDM1"),ex1.fecal,.03),
+      close(val("digestedDM1"),ex1.digested,.03),
+      close(val("dmd1"),ex1.dmd,.15)
+    ];
+  }
+  if(k==="lesson2"){
+    const ids=["undigestedOM","omCoeff","omPct"];
+    if(ids.some(id=>!Number.isFinite(val(id))))return null;
+    return[
+      close(val("undigestedOM"),ex2.undigested,.003),
+      close(val("omCoeff"),ex2.coeff,.003),
+      close(val("omPct"),ex2.pct,.25)
+    ];
+  }
+  if(k==="practice1"){
+    if(!p1)return null;
+    const ids=["p1Fecal","p1Digested","p1DMD"];
+    if(ids.some(id=>!Number.isFinite(val(id))))return null;
+    return[
+      close(val("p1Fecal"),p1.fecal,.04),
+      close(val("p1Digested"),p1.digested,.04),
+      close(val("p1DMD"),p1.dmd,.2)
+    ];
+  }
+  if(k==="practice2"){
+    if(!p2)return null;
+    const ids=["p2Undigested","p2Coeff","p2Pct"];
+    if(ids.some(id=>!Number.isFinite(val(id))))return null;
+    return[
+      close(val("p2Undigested"),p2.undigested,.004),
+      close(val("p2Coeff"),p2.coeff,.004),
+      close(val("p2Pct"),p2.pct,.3)
+    ];
+  }
+  return null;
+}
+
+function recordAttempt(k){
+  const arr=resultFor(k);
+  if(!arr){alert("Complete all answers before marking this attempt.");return}
+  const correct=arr.filter(Boolean).length;
+  const pct=Math.round(correct/arr.length*100);
+  const success=correct===arr.length;
+  const s=scores[k];
+  s.attempts++;
+  if(success){s.success++;s.completed=true}else{s.fail++}
+  s.best=Math.max(s.best,pct);
+  saveScores();renderScores();
+  alert(success?`Marked: ${pct}% — successful.`:`Marked: ${pct}% — ${correct} of ${arr.length} parts correct.`);
+}
+
+function renderScores(){
+  let attempts=0,success=0,fail=0,completed=0;
+  Object.keys(labels).forEach(k=>{
+    const s=scores[k];
+    attempts+=s.attempts;success+=s.success;fail+=s.fail;if(s.completed)completed++;
+    $(`s_${k}_attempts`).textContent=s.attempts;
+    $(`s_${k}_success`).textContent=s.success;
+    $(`s_${k}_fail`).textContent=s.fail;
+    $(`s_${k}_best`).textContent=s.attempts?s.best+"%":"—";
+    $(`s_${k}_status`).innerHTML=`<span class="status-pill ${s.completed?"complete":"incomplete"}">${s.completed?"Completed":"Not completed"}</span>`;
+  });
+  $("scoreAttempts").textContent=attempts;
+  $("scoreSuccess").textContent=success;
+  $("scoreFail").textContent=fail;
+  $("scoreCompleted").textContent=`${completed} / 4`;
+  $("overallScore").textContent=`${attempts?Math.round(success/attempts*100):0}%`;
+}
+
+$("markLesson1").addEventListener("click",()=>recordAttempt("lesson1"));
+$("markLesson2").addEventListener("click",()=>recordAttempt("lesson2"));
+$("markPractice1").addEventListener("click",()=>recordAttempt("practice1"));
+$("markPractice2").addEventListener("click",()=>recordAttempt("practice2"));
+
+$("resetScores").addEventListener("click",()=>{
+  if(confirm("Reset all marks on this browser?")){
+    scores=emptyScores();saveScores();renderScores();
+  }
+});
+
+$("downloadScores").addEventListener("click",()=>{
+  const rows=[["Exercise","Attempts","Successful","Unsuccessful","Best","Completed"]];
+  Object.keys(labels).forEach(k=>{
+    const s=scores[k];
+    rows.push([labels[k],s.attempts,s.success,s.fail,s.attempts?s.best+"%":"",s.completed?"Yes":"No"]);
+  });
+  const csv=rows.map(r=>r.map(x=>`"${String(x??"").replaceAll('"','""')}"`).join(",")).join("\n");
+  const blob=new Blob([csv],{type:"text/csv"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;a.download="marker-digestibility-tutor-marks.csv";a.click();
+  URL.revokeObjectURL(url);
+});
+
+generatePractice1();
+generatePractice2();
+renderScores();
+</script>
+</body>
+</html>
